@@ -25,7 +25,7 @@ struct Album: Decodable {
         case songs
         
         enum CoverArtKeys: String, CodingKey {
-        case url
+            case url
         }
     }
     
@@ -36,8 +36,15 @@ struct Album: Decodable {
         name = try container.decode(String.self, forKey: .name)
         genres = try container.decode([String].self, forKey: .genres)
         songs = try container.decode([Song].self, forKey: .songs)
-        let coverArtContainer = try container.nestedContainer(keyedBy: AlbumKeys.CoverArtKeys.self, forKey: .coverArt)
-        coverArt = try coverArtContainer.decode([URL].self, forKey: .url)
+        var coverArtContainer = try container.nestedUnkeyedContainer(forKey: .coverArt)
+        var urlStrings: [URL] = []
+        while coverArtContainer.isAtEnd == false {
+            let urlContainer = try coverArtContainer.nestedContainer(keyedBy: AlbumKeys.self)
+            let coverArtContainer = try urlContainer.nestedContainer(keyedBy: AlbumKeys.CoverArtKeys.self, forKey: .coverArt)
+            let urlString = try coverArtContainer.decode(URL.self, forKey: .url)
+            urlStrings.append(urlString)
+        }
+        coverArt = urlStrings
     }
 }
 
