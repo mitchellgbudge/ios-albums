@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Album: Decodable {
+struct Album: Codable {
     var artist: String
     var coverArt: [URL]
     var genres: [String]
@@ -40,14 +40,24 @@ struct Album: Decodable {
         var urlStrings: [URL] = []
         while coverArtContainer.isAtEnd == false {
             let urlContainer = try coverArtContainer.nestedContainer(keyedBy: AlbumKeys.CoverArtKeys.self)
-            let urlString = try urlContainer.decode(URL.self, forKey: .url)
-            urlStrings.append(urlString)
+            let urlString = try urlContainer.decode(String.self, forKey: .url)
+            urlStrings.append(URL(string: urlString)!)
         }
         coverArt = urlStrings
     }
+    
+    func encode(encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: AlbumKeys.self)
+        try container.encode(artist, forKey: .artist)
+        try container.encode(coverArt, forKey: .coverArt)
+        try container.encode(genres, forKey: .genres)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(songs, forKey: .songs)
+    }
 }
 
-struct Song: Decodable {
+struct Song: Codable {
     var duration: String
     var id: String
     var name: String
@@ -74,21 +84,12 @@ struct Song: Decodable {
         let nameContainer = try container.nestedContainer(keyedBy: SongKeys.NameKeys.self, forKey: .name)
         name = try nameContainer.decode(String.self, forKey: .title)
     }
+    
+    func encode(encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: SongKeys.self)
+        try container.encode(duration, forKey: .duration)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+    }
 }
 
-//"artist" : "Weezer",
-//"coverArt" : [ {
-//"url" : "https://lastfm-img2.akamaized.net/i/u/174s/1918fe81bb68441d96b2247682bfda21.png"
-//} ],
-//"genres" : [ "Alternative" ],
-//"id" : "5E58FA0F-7DBD-4F1D-956F-89756CF1EB22",
-//"name" : "Weezer (The Blue Album)",
-//"songs" : [ {
-//"duration" : {
-//"duration" : "3:25"
-//},
-//"id" : "82BDE132-E492-4FED-9A77-B49CADBC2BFD",
-//"name" : {
-//"title" : "My Name Is Jonas"
-//}
-//}
